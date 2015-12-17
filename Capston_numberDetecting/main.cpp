@@ -23,7 +23,7 @@ int main(){
     //car number file open
     IplImage *srcImage;
     
-    if ((srcImage = cvLoadImage("/Users/Tony/Documents/workspace_Xcode/Capston_numberDetecting/Capston_numberDetecting/c8006.jpg", CV_LOAD_IMAGE_GRAYSCALE)) == NULL){
+    if ((srcImage = cvLoadImage("/Users/Tony/Documents/workspace_Xcode/Capston_numberDetecting/Capston_numberDetecting/d7217.jpg", CV_LOAD_IMAGE_GRAYSCALE)) == NULL){
         cout<<"picture open Error\n";
         return -1;
     }else
@@ -66,18 +66,12 @@ int main(){
     
     //to show the contour, change the color of picture to simple
     cvCvtColor(thresholdImage, contourPicture, CV_GRAY2BGR);
-
-//    //show the contoure Image
-//    cvNamedWindow("before contour Image", CV_WINDOW_AUTOSIZE);
-//    cvShowImage("before contour Image", contourPicture);
-//
-//    //show the rectangle Image
-//    cvNamedWindow("before rectangle Image", CV_WINDOW_AUTOSIZE);
-//    cvShowImage("before rectangle Image", rectanglePicture);
   
     // rotation check
-    if ( rotationTest(thresholdImage, contourPicture, contourData) ){
-        rotateImage(thresholdImage2, thresholdImage2, 80); // if need to rotate, rotate the picture
+    double angle = rotationTest(thresholdImage, contourPicture, contourData) + 180;
+//    cout<<"angle = "<<angle<< endl;
+    if ( angle != 180 ){
+        rotateImage(thresholdImage2, thresholdImage2, angle); // if need to rotate, rotate the picture
     }
     
     //free thresholdImage
@@ -91,8 +85,9 @@ int main(){
     
     //until now, check the lotation
     // now check the area for nubmer
+    cout<< "number is ";
     findNumberArea(thresholdImage2, contourPicture, getnumberPicture, contourData);
-    
+    cout<< endl;
     //show the threshold Image
 //    cvNamedWindow("thresholdImage2", CV_WINDOW_AUTOSIZE);
 //    cvShowImage("thresholdImage2", thresholdImage2);

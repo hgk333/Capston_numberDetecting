@@ -29,7 +29,7 @@ void findNumberArea(IplImage* thresholdImage2, IplImage* contourPicture, IplImag
     
     //find the contour
     int nContour = cvFindContours(thresholdImage2, storage, &first_contour, sizeof(CvContour), CV_RETR_LIST,CV_CHAIN_APPROX_SIMPLE);
-    cout<<"nContour = "<< nContour<< "\n";
+//    cout<<"nContour = "<< nContour<< "\n";
     
     CvSeq *contour; //for saving the contour
     
@@ -83,8 +83,8 @@ void findNumberArea(IplImage* thresholdImage2, IplImage* contourPicture, IplImag
     printNumberByMat(getnumberPicture, contourData);
     
 }
-bool rotationTest(IplImage *thresholdImage, IplImage* contourPicture, vector<ContourData> contourData){
-    bool returnValue = false;
+double rotationTest(IplImage *thresholdImage, IplImage* contourPicture, vector<ContourData> contourData){
+    int returnValue = 0;
     
     // create storate for contour
     CvMemStorage* storage = cvCreateMemStorage(0);
@@ -95,7 +95,7 @@ bool rotationTest(IplImage *thresholdImage, IplImage* contourPicture, vector<Con
     
     //find the contour
     int nContour = cvFindContours(thresholdImage, storage, &first_contour, sizeof(CvContour), CV_RETR_LIST,CV_CHAIN_APPROX_SIMPLE);
-    cout<<"nContour = "<< nContour<< "\n";
+//    cout<<"nContour = "<< nContour<< "\n";
     
     CvSeq *contour; //for saving the contour
     
@@ -145,7 +145,7 @@ bool rotationTest(IplImage *thresholdImage, IplImage* contourPicture, vector<Con
 }
 
 
-bool arrangeContourData(std::vector<ContourData> &contourData, IplImage* contourPicture){
+double arrangeContourData(std::vector<ContourData> &contourData, IplImage* contourPicture){
     int rotateCheck = 0;
     
     for (int i = 0; i < contourData.size() ; i++) {
@@ -173,10 +173,10 @@ bool arrangeContourData(std::vector<ContourData> &contourData, IplImage* contour
     }
     
     if (rotateCheck > 4) {
-        return true;
+        return atan2((double) contourData[0].getMaxY() - (double) contourData[contourData.size()-1].getMaxY(), (double)contourData[0].getMaxX() - (double)contourData[contourData.size()-1].getMaxX()) * 180 / 3.141592f ;
     }
     
-    return false;
+    return 0;
 }
 
 void throwoutArea(std::vector<ContourData> &contourData, IplImage* contourPicture, int highestHeight){
@@ -233,7 +233,7 @@ void rotateImage(const IplImage* src, IplImage* dst, double degree)
     CvMat*            rotationMatrix    = cvCreateMat(2, 3, CV_32FC1);                        // 회전 기준 행렬
     
     // Rotation 기준 행렬 연산 및 저장(90도에서 기울어진 각도를 빼야 본래이미지(필요시 수정))
-    cv2DRotationMatrix(centralPoint, 90-degree, 1, rotationMatrix);
+    cv2DRotationMatrix(centralPoint, degree, 1, rotationMatrix);
     
     // Image Rotation
     cvWarpAffine(src, dst, rotationMatrix, CV_INTER_LINEAR + CV_WARP_FILL_OUTLIERS);
@@ -245,49 +245,97 @@ void rotateImage(const IplImage* src, IplImage* dst, double degree)
 int PrintMat(const CvMat *mat, const char *strName)
 {
     double   fValue;
-//    double total[CHECKSIZE][CHECKSIZE] = { 0 };
-//    double zero[CHECKSIZE][CHECKSIZE] = { 0 };
-//    int area_x = mat->cols / CHECKSIZE;
-//    int area_y = mat->rows / CHECKSIZE;
+    double total[CHECKSIZE][CHECKSIZE] = { 0 };
+    double zero[CHECKSIZE][CHECKSIZE] = { 0 };
+    int area_x = mat->cols / CHECKSIZE;
+    int area_y = mat->rows / CHECKSIZE;
     //printf(" %s  \n =  \n", strName);
     for (int i = 0; i < mat->rows; i++)
     {
         for (int j = 0; j < mat->cols; j++)
         {
             fValue = cvGetReal2D(mat, i, j);
-            printf("%3d", cvRound(fValue));
+//            printf("%3d", cvRound(fValue));
         }
-        printf("\n");
+//        printf("\n");
     }
-//    for (int i = 0; i < CHECKSIZE; i++){
-//        for (int j = 0; j < CHECKSIZE; j++){
-//            for (y = area_y*i; y < area_y*(i + 1); y++)
-//            {
-//                for (x = area_x*j; x < area_x*(j + 1); x++)
-//                {
-//                    fValue = cvGetReal2D(mat, y, x);
-//                    if (cvRound(fValue) == 0)
-//                        zero[i][j] += 1;
-//                    total[i][j] += 1;
-//                }
-//            }
-//            total[i][j] = zero[i][j] / total[i][j];
-//        }
-//    }
-//    show_zeroArea(total);
-//    getchar();
-
+    for (int i = 0; i < CHECKSIZE; i++){
+        for (int j = 0; j < CHECKSIZE; j++){
+            for (int y = area_y*i; y < area_y*(i + 1); y++)
+            {
+                for (int x = area_x*j; x < area_x*(j + 1); x++)
+                {
+                    fValue = cvGetReal2D(mat, y, x);
+                    if (cvRound(fValue) == 0)
+                        zero[i][j] += 1;
+                    total[i][j] += 1;
+                }
+            }
+            total[i][j] = zero[i][j] / total[i][j];
+        }
+    }
+    show_zeroArea(total);
+    cout<<counting(total);
+    
     return 0;
 
 }
 void show_zeroArea(double result[CHECKSIZE][CHECKSIZE]){
     for (int i=0;i< CHECKSIZE;i++   )
         for (int j=0; j<CHECKSIZE; j++) {
-            printf("rate[%d][%d] = %lf \n",i,j,result[i][j]);
+//            printf("rate[%d][%d] = %lf \n",i,j,result[i][j]);
         }
 }
 
 int counting(double result[CHECKSIZE][CHECKSIZE]){
+    int numbertest;
+    int num[9]={0};
+    int number;
+    for(int i=0;i<CHECKSIZE;i++){
+        for(int j=0;j<CHECKSIZE;j++){
+            if(result[i][j]<=0.2) numbertest = 1;
+            else if(result[i][j]<=0.4 &&result[i][j]>0.2) numbertest = 2;
+            else if(result[i][j]<=0.6 &&result[i][j]>0.4) numbertest = 3;
+            else if(result[i][j]<=0.8 &&result[i][j]>0.6) numbertest = 4;
+            else numbertest = 5;
+            num[3*i+j]= numbertest;
+            numbertest=1;
+            
+        }
+    }
     
-    return 0;
+    if(num[0]==3&&num[1]==2&&num[2]==3&&num[3]==4&&num[4]==1&&num[5]==4&&(num[6]==3||num[6]==4)&&num[7]==2&&(num[8]==3||num[8]==4)){
+        number = 0;
+    }
+    else if((num[0]==2||num[0]==3)&&(num[1]==2||num[1]==3)&&num[2]==5&&num[3]==1&&num[4]==1&&(num[5]==4||num[5]==5)&&num[6]==1&&num[7]==1&&(num[8]==4||num[8]==5)){
+        number = 1;
+    }
+    else if(num[0]==3&&(num[1]==2||num[1]==3)&&(num[2]==3||num[2]==4)&&num[3]==1&&(num[4]==1||num[4]==2||num[4]==3)&&(num[5]==2||num[5]==3||num[4])&&(num[6]==2||num[6]==3)&&(num[7]==4||num[7]==5)&&num[8]==2){
+        number = 2;
+    }
+    else if(num[0]==2&&num[1]==3&&(num[2]==3||num[2]==4)&&num[3]==1&&(num[4]==2||num[4]==3)&&(num[5]==3||num[5]==4)&&(num[6]==3||num[6]==4)&&(num[7]==2||num[7]==3)&&num[8]==4){
+        number = 3;
+    }
+    else if(num[0]==1&&(num[1]==1||num[1]==2||num[1]==3)&&(num[2]==3||num[2]==4||num[2]==5)&&(num[3]==1||num[3]==2)&&(num[4]==2||num[4]==3)&&(num[5]==3||num[5]==4)&&(num[6]==2||num[6]==3)&&(num[7]==2||num[7]==3)&&(num[8]==4||num[8]==5)){
+        number = 4;
+    }
+    else if((num[0]==3||num[0]==4)&&(num[1]==3||num[1]==4)&&(num[2]==2||num[2]==3)&&(num[3]==3||num[3]==4)&&(num[4]==2||num[4]==3)&&(num[5]==3||num[5]==4)&&num[6]==3&&(num[7]==2||num[7]==3)&&(num[8]==3||num[8]==4)){
+        number = 5;
+    }
+    else if(num[0]==1&&(num[1]==3||num[1]==4)&&num[2]==1&&(num[3]==3||num[3]==4)&&(num[4]==3||num[4]==4)&&num[5]==3&&(num[6]==3||num[6]==4)&&(num[7]==2||num[7]==3)&&(num[8]==3||num[8]==4)){
+        number = 6;
+    }
+    
+    else if((num[0]==3||num[0]==4)&&num[1]==2&&num[2]==4&&num[3]==1&&num[4]==2&&(num[5]==2||num[5]==3)&&num[6]==1&&(num[7]==3||num[7]==4)&&num[8]==1){
+        number = 7;
+    }
+    else if((num[0]==2||num[0]==3)&&(num[1]==2||num[1]==3)&&(num[2]==3||num[2]==4)&&(num[3]==4||num[3]==3)&&(num[4]==2||num[4]==3||num[4]==4)&&(num[5]==3||num[5]==4||num[5]==5)&&(num[6]==3||num[6]==4)&&(num[7]==2||num[7]==3)&&num[8]==4){
+        number = 8;
+    }
+    else if(num[0]==3&&num[1]==2&&(num[2]==3||num[2]==4)&&num[3]==3&&num[4]==3&&num[5]==4&&num[6]==1&&num[7]==4&&num[8]==1){
+        number = 9;
+    }
+    
+    
+    return number;
 }
